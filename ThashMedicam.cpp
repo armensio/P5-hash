@@ -3,29 +3,30 @@
 //
 
 #include "ThashMedicam.h"
+#include <iostream>
 
-ThashMedicam::ThashMedicam() {
-
+ThashMedicam::ThashMedicam() : tabla(tamf, Entrada()) {
 }
+
 
 ThashMedicam::ThashMedicam(int maxElementos, float lambda): tamf(primo_superior(maxElementos/lambda)), taml(),
                                                             maxColisiones(), max10(), sumCol(), tabla(tamf,Entrada()) {
 
 }
 
-ThashMedicam::ThashMedicam(const ThashMedicam &orig): tamf(orig.tamf), taml(orig.taml), maxColisiones(orig.maxColisiones),
-                                                        max10(orig.max10), sumCol(orig.sumCol), tabla(orig.tabla){
-
+ThashMedicam::ThashMedicam(const ThashMedicam &orig): tamf(orig.tamf), taml(orig.taml),
+                                                      maxColisiones(orig.maxColisiones),
+                                                      max10(orig.max10), sumCol(orig.sumCol),
+                                                      tabla(orig.tabla){
 }
 
 ThashMedicam::~ThashMedicam() {
-
 }
 
 int ThashMedicam::exploracion_cuadratica(int clave, int intento) {
     //h(x)=(x+i^2)%t
     int posicion;
-    posicion=(clave+(intento*intento*intento))%tamf;
+    posicion=(clave+(intento+(intento*intento)))%tamf;
     return posicion;
 }
 
@@ -33,24 +34,31 @@ int ThashMedicam::exploracion_doble1(int clave, int intento) {
     //h(x)=(h1(x)+i*i*h2(x))%t
     //h1(x)=x%t
     //h2(x)=1+(x%q) con q primo < t
-    int posicion_funcion1,posicion_funcion2,posicion_final;
-    posicion_funcion1=clave%tamf;
-    posicion_funcion2=1+(clave%(primo_inferior(tamf))); // NECESITO HACER UN METODO PRIMO MENOR QUE
-    posicion_final=(posicion_funcion1+(intento*intento*posicion_funcion2))%tamf;
+    int posicion_funcion1 = clave % tamf;
+    int posicion_funcion2 = 1 + (clave % primo_inferior(tamf));
+
+    int desplazamiento = intento * posicion_funcion2;
+    int posicion_final = (posicion_funcion1 + desplazamiento) % tamf;
+
+    if(posicion_final < 0) posicion_final += tamf;
+
     return posicion_final;
 }
 
 int ThashMedicam::exploracion_doble2(int clave, int intento) {
-    //h(x)=((h1(x)+h1(x))+i*h2(x))%t
+    //h(x)=((h1(x)*h1(x))+i*h2(x))%t
     //h1(x)=x%t
     //h2(x)=1+(x%q) con q primo < t
-    int posicion_funcion1,posicion_funcion2,posicion_final;
-    posicion_funcion1=clave%tamf;
-    posicion_funcion2=1+(clave%(primo_inferior(tamf))); // NECESITO HACER UN METODO PRIMO MENOR QUE
-    posicion_final=((posicion_funcion1*posicion_funcion1)+(intento*posicion_funcion2))%tamf;
+    int posicion_funcion1 = clave % tamf;
+    int posicion_funcion2 = 1 + (clave % primo_inferior(tamf));
+
+    int desplazamiento = intento + (intento * intento) * posicion_funcion2;
+    int posicion_final = (posicion_funcion1 + desplazamiento) % tamf;
+
+    if(posicion_final < 0) posicion_final += tamf;
+
     return posicion_final;
 }
-
 
 int ThashMedicam::primo_superior(int num) {
     bool esprimo=false;
@@ -59,7 +67,7 @@ int ThashMedicam::primo_superior(int num) {
         esprimo=true;
         for(int i=2;i<aux;i++){
             if(aux%i == 0){
-                esprimo=true;
+                esprimo=false;
                 break;
             }
         }
@@ -75,7 +83,7 @@ int ThashMedicam::primo_inferior(int num) {
         esprimo=true;
         for(int i=2;i<aux;i++){
             if(aux%i == 0){
-                esprimo=true;
+                esprimo=false;
                 break;
             }
         }
@@ -88,7 +96,9 @@ bool ThashMedicam::insertar(int clave, PaMedicamento &pa) {
     bool esta=false;
     int intento=0;
     while(!esta) {
-        int pos= exploracion_cuadratica(clave,intento);
+        //unsigned int pos= exploracion_cuadratica(clave,intento);
+        //unsigned int pos= exploracion_doble1(clave,intento);
+        unsigned int pos= exploracion_doble2(clave,intento);
         if (tabla[pos].marca == 'o') {
             if(tabla[pos].clave==clave){
                 return false;
@@ -116,7 +126,9 @@ PaMedicamento* ThashMedicam::buscar(int clave) {
     bool encontrado=false;
     int intento=0;
     while(!encontrado){
-        int pos= exploracion_cuadratica(clave,intento);
+        //unsigned int pos= exploracion_cuadratica(clave,intento);
+        //unsigned int pos= exploracion_doble1(clave,intento);
+        unsigned int pos= exploracion_doble2(clave,intento);
         if(tabla[pos].marca != 'v'){
             if(tabla[pos].clave == clave){
                 return &tabla[pos].dato;
@@ -133,10 +145,12 @@ bool ThashMedicam::borrar(int clave) {
     bool encontrado=false;
     int intento=0;
     while(!encontrado){
-        int pos= exploracion_cuadratica(clave,intento);
+        //unsigned int pos= exploracion_cuadratica(clave,intento);
+        //unsigned int pos= exploracion_doble1(clave,intento);
+        unsigned int pos= exploracion_doble2(clave,intento);
         if(tabla[pos].marca == 'o'){
             if(tabla[pos].clave == clave){
-                tabla[pos].marca='d'; // PREGUNTAR SI ES ASÍ, NO HABRÍA QUE BORRA NADA???
+                tabla[pos].marca='d';
                 taml--;
                 return true;
             }
@@ -188,6 +202,19 @@ int ThashMedicam::getSumCol() const {
 
 void ThashMedicam::setSumCol(int sumCol) {
     ThashMedicam::sumCol = sumCol;
+}
+
+float ThashMedicam::factorCarga() {
+    float numerador=taml;
+    float denominador=tamf;
+    return numerador/denominador;
+}
+
+float ThashMedicam::promedioColisiones() {
+    float numerador=sumCol;
+    float denominador=taml;
+    return numerador/denominador;
+    //return (float)sumCol/(float)taml;
 }
 
 

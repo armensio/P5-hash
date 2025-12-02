@@ -21,19 +21,19 @@ using namespace std;
 class MediExpress {
 private:
     list<Laboratorio> labs;
-    //map<int,PaMedicamento> medication;
     multimap<string,Farmacia> pharmacy;
     ThashMedicam idMedication;
+    multimap<string,PaMedicamento*> nombMedication;
     vector<int> id_medicamentosss;
 
 public:
     MediExpress();
-    MediExpress(const string &fichero_pamedicamentos,const string &fichero_laboratorios,const string &fichero_farmacias);
+    MediExpress(const string &fichero_pamedicamentos,const string &fichero_laboratorios,const string &fichero_farmacias,int tam,float lambda);
     ~MediExpress();
 
-    void suministrarMed(PaMedicamento *pa,Laboratorio *l); // NO CAMBIA
-    Laboratorio* buscarLab(string nombreLab); // NO CAMBIA
-    vector<Laboratorio*> buscarLabCiudad(string nombreCiudad); // NO CAMBIA
+    void suministrarMed(PaMedicamento *pa,Laboratorio *l);
+    Laboratorio* buscarLab(string nombreLab);
+    vector<Laboratorio*> buscarLabCiudad(string nombreCiudad);
     vector<PaMedicamento*> buscarCompuesto(string nombrePA);
     vector<PaMedicamento*> getMedicamentoSinLab();
 
@@ -44,6 +44,8 @@ public:
 
     vector<Farmacia*> buscarFarmacias(string provincia);
     bool eliminarMedicamento(int id_num);
+
+    void mostrarEstadoTabla();
 };
 
 

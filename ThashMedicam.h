@@ -18,10 +18,10 @@ private:
         Entrada(): dato(), clave(0), marca('v'){}
         ~Entrada(){};
     };
-    int tamf=3000,taml=0,maxColisiones=0,max10=0,sumCol=0;
+    int tamf=3400,taml=0,maxColisiones=0,max10=0,sumCol=0;
     vector<Entrada> tabla;
-    int exploracion_cuadratica(int clave, int intento); // ESTÁN COPIADAS TAL CUAL DE LAS DIAPOSITIVAS
-    int exploracion_doble1(int clave, int intento); // CAMBIARLAS
+    int exploracion_cuadratica(int clave, int intento);
+    int exploracion_doble1(int clave, int intento);
     int exploracion_doble2(int clave, int intento);
 
     int primo_superior(int num);
@@ -31,7 +31,7 @@ public:
     ThashMedicam();
     ThashMedicam(int maxElementos, float lambda=0.7);
     ThashMedicam(const ThashMedicam &orig);
-    // FALTA EL OPERADOR DE IGUALDAD
+
     virtual ~ThashMedicam();
     bool insertar(int clave, PaMedicamento &pa);
     PaMedicamento* buscar(int clave);
@@ -48,6 +48,8 @@ public:
     void setMax10(int max10);
     int getSumCol() const;
     void setSumCol(int sumCol);
+    float factorCarga();
+    float promedioColisiones();
 };
 
 

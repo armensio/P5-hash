@@ -3,13 +3,15 @@
 //
 
 #include "MediExpress.h"
+#include <chrono>
+#include <algorithm>
 using namespace std;
 
 MediExpress::MediExpress() {
 
 }
 
-MediExpress::MediExpress(const std::string &fichero_pamedicamentos, const std::string &fichero_laboratorios, const std::string &fichero_farmacias) {
+MediExpress::MediExpress(const std::string &fichero_pamedicamentos, const std::string &fichero_laboratorios, const std::string &fichero_farmacias, int tam, float lambda) : idMedication(tam,lambda){
 
     std::ifstream is;
     std::stringstream columnas;
@@ -20,7 +22,7 @@ MediExpress::MediExpress(const std::string &fichero_pamedicamentos, const std::s
     std::string id_alpha = "";
     std::string nombre = "";
 
-    vector<int> id_medicamentos;
+    list<PaMedicamento> lista_medicamentos;
     is.open(fichero_pamedicamentos); //carpeta de proyecto
     if (is.good()) {
         std::cout << endl << "Los 50 primeros medicamentos son: " << std::endl;
@@ -39,7 +41,9 @@ MediExpress::MediExpress(const std::string &fichero_pamedicamentos, const std::s
 
                 idMedication.insertar(stoi(id_number),dato);
 
-                id_medicamentos.push_back(stoi(id_number));
+                id_medicamentosss.push_back(stoi(id_number));
+
+                lista_medicamentos.push_back(dato);
 
                 fila = "";
                 columnas.clear();
@@ -58,6 +62,42 @@ MediExpress::MediExpress(const std::string &fichero_pamedicamentos, const std::s
     } else {
         std::cout << "Error de apertura en archivo" << std::endl;
     }
+
+
+    cout << endl << endl;
+    //Busqueda de medicamentos en tabla hash
+    auto start = std::chrono::high_resolution_clock::now();
+    for(int i=0;i<id_medicamentosss.size();i++){
+        buscarCompuesto(id_medicamentosss[i]);
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    std::cout << "Tiempo de búsqueda de medicamentos en tabla hash: " << duration.count() << " ms" << std::endl;
+
+    // Busqueda de medicamentos en lista
+    start = std::chrono::high_resolution_clock::now();
+    list<PaMedicamento>::iterator i=lista_medicamentos.begin();
+    while(i!=lista_medicamentos.end()){
+        buscarCompuesto(i->getIdNum());
+        i++;
+    }
+    end = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    std::cout << "Tiempo de búsqueda de medicamentos en lista: " << duration.count() << " ms" << std::endl;
+
+
+    // Creación de nombMedication
+    for (int i = 0; i < id_medicamentosss.size(); i++) {
+        PaMedicamento* medicamento = idMedication.buscar(id_medicamentosss[i]);
+        stringstream s(medicamento->getNombre());
+        string palabra;
+        while (s >> palabra) {
+            nombMedication.insert(make_pair(palabra, medicamento));
+        }
+    }
+
+
+    cout << endl << endl;
 
 
     //Lectura de los laboratorios
@@ -118,30 +158,13 @@ MediExpress::MediExpress(const std::string &fichero_pamedicamentos, const std::s
         sin_labs[i]->servidoPor(madrid[i]);
     }
 
-    /*
     list<Laboratorio>::iterator j=labs.begin();
     //Enlace de medicamentos con laboratorios
-    for(int i=0;i<medication.size() && j!=labs.end();i=i+2){
-        medication[i].servidoPor(&(*j));
-        medication[i+1].servidoPor(&(*j));
-        j++;
-    }*/
-
-    // ME DA PROBLEMA EN EL MEDICAMENTO2 CORREGIRRRRRRR
-    list<Laboratorio>::iterator j=labs.begin();
-    //Enlace de medicamentos con laboratorios
-    for(int i=0;i<id_medicamentos.size() && j!=labs.end();i=i+2){
-        PaMedicamento *medicamento=idMedication.buscar(id_medicamentos[i]);
-        if(medicamento){
-            medicamento->servidoPor(&(*j));
-        }
-        /*PaMedicamento *medicamento2=idMedication.buscar(id_medicamentos[i+1]);
-        if(medicamento2){
-            medicamento->servidoPor(&(*j));
-        }*/
+    for(int i=0;i<id_medicamentosss.size() && j!=labs.end();i=i+2){
+        buscarCompuesto(id_medicamentosss[i])->servidoPor(&(*j));
+        buscarCompuesto(id_medicamentosss[i+1])->servidoPor(&(*j));
         j++;
     }
-
 
     //Cargo las farmacias
     contador = 0;
@@ -231,12 +254,12 @@ MediExpress::MediExpress(const std::string &fichero_pamedicamentos, const std::s
         if(f){
             int c=0;
             while(c<100){
-                PaMedicamento *medicamento= buscarCompuesto(id_medicamentos[m]);
+                PaMedicamento *medicamento= buscarCompuesto(id_medicamentosss[m]);
                 f->nuevoStock(medicamento,10);
 
                 c++;
                 m++;
-                if(m==id_medicamentos.size()){
+                if(m==id_medicamentosss.size()){
                     m=0;
                 }
             }
@@ -279,15 +302,36 @@ vector<Laboratorio*> MediExpress::buscarLabCiudad(std::string nombreCiudad) {
 }
 
 vector<PaMedicamento*> MediExpress::buscarCompuesto(std::string nombrePA) {
-    vector<PaMedicamento*> medicamentos;
-    for(int i=0;i<id_medicamentosss.size();i++){
-        PaMedicamento *medicamento= buscarCompuesto(id_medicamentosss[i]);
-        if(medicamento->getNombre().find(nombrePA)!= string::npos){
-            medicamentos.push_back(medicamento);
+    vector<PaMedicamento*> compuesto;
+
+    vector<set<PaMedicamento*> > vector;
+    std::stringstream separacion;
+    string palabra;
+    separacion.str(nombrePA);
+    int i=0;
+    while (getline(separacion, palabra, ' ')){
+        set<PaMedicamento*> x;
+        vector.push_back(x);
+        multimap<string,PaMedicamento*>::iterator it= nombMedication.find(palabra);
+        while (it!=nombMedication.end() && it->first==palabra){
+            vector[i].insert(it->second);
+            it++;
         }
+        i++;
     }
-    return medicamentos;
+    set<PaMedicamento*> a;
+    set<PaMedicamento*> b;
+    a=vector[0];
+    for (int i = 1; i < vector.size(); i++) {
+        set_intersection(vector[i].begin(), vector[i].end(), a.begin(), a.end(),
+                         inserter(b, b.begin()));
+        a=b;
+        b.clear();
+    }
+    compuesto.insert(compuesto.begin(),b.begin(),b.end());
+    return compuesto;
 }
+
 
 vector<PaMedicamento*> MediExpress::getMedicamentoSinLab() {
     vector<PaMedicamento*> medicamentos;
@@ -340,7 +384,7 @@ vector<Farmacia*> MediExpress::buscarFarmacias(std::string provincia) {
     vector<Farmacia*> v;
     multimap<string,Farmacia>::iterator i=pharmacy.find(provincia);
     if(i!=pharmacy.end()){
-        while(i->second.getProvincia()==provincia) {
+        while(i->first==provincia) {
             v.push_back(&(*i).second);
             i++;
         }
@@ -363,4 +407,14 @@ bool MediExpress::eliminarMedicamento(int id_num) {
         return true;
     }
     return false;
+}
+
+void MediExpress::mostrarEstadoTabla() {
+    cout << "Lambda: 0.65" << endl;
+    cout << "Factor de carga: " << idMedication.factorCarga() << endl;
+    cout << "Tamaño físico de tabla: " << idMedication.getTamf() << endl;
+    cout << "Tamaño lógico de tabla: " << idMedication.getTaml() << endl;
+    cout << "Veces que han habido más de 10 colisiones:  " << idMedication.getMax10() << endl;
+    cout << "El mayor número de colisiones ha sido: " << idMedication.getMaxColisiones() << endl;
+    cout << "La media de colisiones por inserción es de: " << idMedication.promedioColisiones() << endl;
 }

@@ -94,6 +94,16 @@ void Farmacia::pedidoMedicam(int id_num, int n) {
     }
 }
 
+void Farmacia::pedidoMedicam(string nombre, int n) {
+    if(linkMedi) {
+        vector<PaMedicamento*> medicamentos;
+        medicamentos=linkMedi->buscarCompuesto(nombre);
+        for (int i = 0; i < medicamentos.size(); i++) {
+            linkMedi->suministrarFarmacia(this, medicamentos[i]->getIdNum(), n);
+        }
+    }
+}
+
 int Farmacia::buscaMedicamId(int id_num) {
     map<int,Stock>::iterator i=order.begin();
     Stock s(id_num,0);

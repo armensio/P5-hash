@@ -26,6 +26,7 @@ private:
     map<int,Stock> order;
 
     void pedidoMedicam(int id_num,int n);
+    void pedidoMedicam(string nombre, int n); //Rarete
 
 public:
     Farmacia();

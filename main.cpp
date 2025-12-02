@@ -51,28 +51,60 @@ void mostrar_farmacia(vector<Farmacia*> &vector){
  */
 int main() {
     try {
-        MediExpress m("../pa_medicamentos.csv","../lab2.csv","../farmacias.csv");
+        MediExpress m("../pa_medicamentos.csv","../lab2.csv","../farmacias.csv",3310,0.65);
+        cout << endl << endl;
+        m.mostrarEstadoTabla();
+
+        vector<PaMedicamento*> medicamentos;
+        medicamentos=m.buscarCompuesto("MAGNESIO CLORURO HEXAHIDRATO");
+        cout << medicamentos.size() <<" medicamentos tienen MAGNESIO CLORURO HEXAHIDRATO" << endl;
+        for(int i=0;i<medicamentos.size();i++){
+            cout << medicamentos[i]->getNombre() << endl;
+        }
+        medicamentos=m.buscarCompuesto("CLORURO");
+        cout << endl << medicamentos.size() <<" medicamentos tienen CLORURO" << endl;
+        for(int i=0;i<medicamentos.size();i++){
+            cout << medicamentos[i]->getNombre() << endl;
+        }
+        medicamentos=m.buscarCompuesto("ANHIDRO CALCIO CLORURO");
+        cout << endl << medicamentos.size() <<" medicamentos tienen ANHIDRO CALCIO CLORURO" << endl;
+        for(int i=0;i<medicamentos.size();i++){
+            cout << medicamentos[i]->getNombre() << endl;
+        }
+        medicamentos=m.buscarCompuesto("LIDOCAINA HIDROCLORURO");
+        cout << endl << medicamentos.size() <<" medicamentos tienen LIDOCAINA HIDROCLORURO" << endl;
+        for(int i=0;i<medicamentos.size();i++){
+            cout << medicamentos[i]->getNombre() << endl;
+        }
+        medicamentos=m.buscarCompuesto("MENTA PIPERITA");
+        cout << endl << medicamentos.size() <<" medicamentos tienen MENTA PIPERITA" << endl;
+        for(int i=0;i<medicamentos.size();i++){
+            cout << medicamentos[i]->getNombre() << endl;
+        }
+        medicamentos=m.buscarCompuesto("VIRUS GRIPE");
+        cout << endl << medicamentos.size() <<" medicamentos tienen VIRUS GRIPE" << endl;
+        for(int i=0;i<medicamentos.size();i++){
+            cout << medicamentos[i]->getNombre() << endl;
+        }
+
 
         // SEVILLA
         vector<Farmacia*> sevilla=m.buscarFarmacias("SEVILLA");
         PaMedicamento *pa;
-
         cout << endl << endl << endl;
         cout << "Farmacias en Sevilla: " << sevilla.size() << endl;
         int unidades;
         for(int i=0;i<sevilla.size();i++){
             for(int j=0;j<12;j++) {
-                unidades = sevilla[i]->comprarMedicam(3640, 1, pa);
-                cout << "En la farmacia " << sevilla[i]->getCif() << " hay " << unidades
-                     << " unidades de Oxido de magnesio" << endl;
-                if (unidades == 0) {
-                    unidades = sevilla[i]->comprarMedicam(3632, 1, pa);
+                vector<PaMedicamento*> medicamentos2=sevilla[i]->buscaMedicamNombre("MAGNESIO");
+                for(int k=0;k<medicamentos2.size();k++) {
+                    unidades = sevilla[i]->comprarMedicam(medicamentos2[k]->getIdNum(), 1, pa);
                     cout << "En la farmacia " << sevilla[i]->getCif() << " hay " << unidades
-                         << " unidades de Carbonato de magnesio" << endl;
+                         << " unidades de " << medicamentos2[k]->getNombre() << endl;
                     if (unidades == 0) {
-                        unidades = sevilla[i]->comprarMedicam(3633, 1, pa);
+                        unidades = sevilla[i]->comprarMedicam(3640, 1, pa);
                         cout << "En la farmacia " << sevilla[i]->getCif() << " hay " << unidades
-                             << " unidades de Cloruro de magnesio" << endl;
+                             << " unidades de Oxido de magnesio" << endl;
                         if (unidades == 0) {
                             cout << "No hay ninguno de los medicamentos" << endl;
                         }
@@ -82,47 +114,28 @@ int main() {
         }
 
 
-        // VIRUSES
-        cout << endl << endl;
-        vector<Farmacia*> madrid=m.buscarFarmacias("MADRID");
-        int contador=0;
-        vector<PaMedicamento*> virus;
-        for(int i=0;i<madrid.size();i++){
-            virus=madrid[i]->buscaMedicamNombre("VIRUS");
-            contador+=virus.size();
-            cout << "Farmacia con cif: " << madrid[i]->getCif() << " tiene VIRUS" << endl;
-        }
-        cout << "En Madrid hay " << contador << " farmacias con VIRUS" << endl;
+        //vector<Farmacia*> jaen=m.buscarFarmacias("JAEN");
+        //cout << "Farmacias en Jaen: " << jaen.size() << endl;
+        //Esto es lo que debería poner pero no me coge ninguna farmacia, entonces he buscado a mano la única farmacia
 
-
-
-        cout << endl << endl;
-        // ELIMINO MEDICAMENTO 9355
-        if(m.eliminarMedicamento(9355)){
-            cout << "El medicamento con id 9355 se ha eliminado con exito" << endl;
-        }else{
-            cout << "Error en el borrado del medicamento con id 9355" << endl;
+        Farmacia *jaen=m.buscarFarmacia("E23319585");
+        vector<PaMedicamento*> medicamentos3=jaen->buscaMedicamNombre("ANTIGENO OLIGOSACARIDO");
+        cout << medicamentos3.size() << " medicamentos con ese nombre en la farmacia de jaen" << endl;
+        for(int i=0;i<medicamentos3.size();i++){
+            cout << "Antes de pedir " << medicamentos3[i]->getNombre() << ": " << jaen->buscaMedicamId(medicamentos3[i]->getIdNum()) << " unidades" <<  endl;
+            jaen->nuevoStock(medicamentos3[i],10);
+            cout << "Después de pedir " << medicamentos3[i]->getNombre() << ": " << jaen->buscaMedicamId(medicamentos3[i]->getIdNum()) << " unidades" <<  endl;
         }
 
-        // Verifico si el medicamento se ha eliminado
-        if(!m.buscarCompuesto(9355)){
-            cout << "Ya no existe el medicamento con id_num=9355" << endl;
-        }else{
-            cout << "El medicamento con id_num=9355 sigue existiendo" << endl;
+        vector<PaMedicamento*> bismutos=m.buscarCompuesto("BISMUTO");
+        cout << bismutos.size() << endl;
+        vector<PaMedicamento*> cianuros=m.buscarCompuesto("CIANURO");
+        cout << cianuros.size() << endl;
+        for(int i=0;i<bismutos.size();i++){
+            m.eliminarMedicamento(bismutos[i]->getIdNum());
         }
-
-
-        if(m.buscarCompuesto(3244)){
-            cout << "El medicamento con id_num=3244 esta" << endl;
-        }else{
-            cout << "El medicamento con id_num=3244 no esta" << endl;
-        }
-
-        // ELIMINO MEDICAMENTO 3244
-        if(m.eliminarMedicamento(3244)){
-            cout << "El medicamento con id 3244 se ha eliminado con exito" << endl;
-        }else{
-            cout << "Error en el borrado del medicamento con id 3244" << endl;
+        for(int i=0;i<cianuros.size();i++){
+            m.eliminarMedicamento(cianuros[i]->getIdNum());
         }
 
     }catch (exception &e) {

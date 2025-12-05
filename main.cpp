@@ -53,7 +53,7 @@ int main() {
     try {
         MediExpress m("../pa_medicamentos.csv","../lab2.csv","../farmacias.csv",3310,0.65);
         cout << endl << endl;
-        m.mostrarEstadoTabla();
+        //m.mostrarEstadoTabla();
 
         vector<PaMedicamento*> medicamentos;
         medicamentos=m.buscarCompuesto("MAGNESIO CLORURO HEXAHIDRATO");
